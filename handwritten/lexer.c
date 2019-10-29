@@ -39,7 +39,6 @@ int next_char() {
 }
 
 int lex() {
-    static size_t line = 1;
     static int ch;
     static char buffer[256] = {0};
     static char* buf = buffer;
