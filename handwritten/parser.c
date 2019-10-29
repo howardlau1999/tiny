@@ -2,10 +2,9 @@
 #include <string.h>
 #include "token.h"
 extern char* lval;
-int __lex();
+int lex();
 int token;
 
-void Match();
 void Type();
 void Id();
 void FormalParam();
@@ -22,11 +21,6 @@ int ii = 0, itop = -1, istack[100];
 #define _END_IF     {itop--;}
 #define _i          (istack[itop])
 
-int lex() {
-    int token = __lex();
-    // print_token(token);
-    return token;
-}
 
 int accept(int expected) {
     return token == expected;
@@ -327,7 +321,6 @@ void FormalParams() {
             }
             break;
         case ')':
-            // Match(')');
             break;
         default:
             parse_error("FormalParams ");

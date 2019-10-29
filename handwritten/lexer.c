@@ -15,7 +15,7 @@ int match_keyword(const char* buf) {
 extern FILE* source;
 char* lval;
 
-int __lex() {
+int lex() {
     static size_t line = 1;
     static int ch;
     static char buffer[256] = {0};
