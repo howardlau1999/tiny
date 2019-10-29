@@ -1,0 +1,5 @@
+*.o
+tiny
+y.*
+lex.yy.c
+*.asm

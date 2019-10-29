@@ -1,9 +1,14 @@
 #include <stdlib.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 #include "token.h"
 extern char* lval;
 int lex();
 int token;
+
+extern int line;
+extern int token_start;
 
 void Type();
 void Id();
@@ -26,10 +31,19 @@ int accept(int expected) {
     return token == expected;
 }
 
-void parse_error(const char* message) {
-    printf("%s", message);
-    print_token(token);
-    puts("");
+
+void parse_error(int n, ...) {
+    fprintf(stderr, "Line %d, Char %d: Expected ", line, token_start);
+    va_list expected;
+    va_start(expected, n);
+    for (size_t i = 0; i < n; ++i) {
+        if (i) {
+           fprintf(stderr, ", ");
+        }
+        fprintf(stderr, "%s", print_token(va_arg(expected, int)));
+    }
+    va_end(expected);
+    fprintf(stderr, " Got %s\n", print_token(token));
     exit(1);
 }
 
@@ -38,9 +52,7 @@ void parse_error(const char* message) {
         action\
         token = lex();\
     } else {\
-        printf("Match ");\
-        print_token(expected);\
-        parse_error("got ");\
+        parse_error(1, expected);\
     }\
     \
 } while (0)
@@ -58,7 +70,7 @@ void Type() {
         terminal(T_REAL, 
             printf("REAL ");
         );
-    } else parse_error("Type ");
+    } else parse_error(2, T_INT, T_REAL);
 }
 
 void Id() { terminal(T_IDENTIFIER, {}); }
@@ -119,7 +131,7 @@ void String() {
     if (accept(T_STRING_LITERAL)) {
         token = lex();
     } else {
-        parse_error("String ");
+        parse_error(1, T_STRING_LITERAL);
     }
 }
 
@@ -158,7 +170,7 @@ void Num() {
     if (accept(T_REAL_LITERAL) || accept(T_INT_LITERAL)) {
         token = lex();
     } else {
-        parse_error("Num ");
+        parse_error(2, T_REAL_LITERAL, T_INT_LITERAL);
     }
 }
 
@@ -193,7 +205,7 @@ void BoolExpression() {
             action = "CMPNE";
         );
     } else {
-        parse_error("BoolExpression ");
+        parse_error(2, T_EQ, T_NE);
     }
     Expression();
     puts(action);
@@ -299,7 +311,7 @@ void Statement() {
             ReadStmt();
             break;
         default:
-            parse_error("Statement ");
+            parse_error(8, T_BEGIN, T_INT, T_REAL, T_IDENTIFIER, T_RETURN, T_IF, T_WRITE, T_READ);
             break;
     }
 }
@@ -323,7 +335,7 @@ void FormalParams() {
         case ')':
             break;
         default:
-            parse_error("FormalParams ");
+            parse_error(3, T_INT, T_REAL, ')');
             break;
     }
 
@@ -356,8 +368,10 @@ void Program() {
     while (1) {
         if (accept(T_INT) || accept(T_REAL)) {
             MethodDecl();
+        } else if (accept(-1)) {
+            return;
         } else {
-            break;
+            parse_error(3, T_INT, T_REAL, -1);
         }
     }
 }
