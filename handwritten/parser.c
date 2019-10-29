@@ -190,7 +190,7 @@ void BoolExpression() {
         );
     } else if (accept(T_NE)) {
         terminal(T_NE, 
-            action = "CMPEQ";
+            action = "CMPNE";
         );
     } else {
         parse_error("BoolExpression ");
