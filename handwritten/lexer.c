@@ -12,21 +12,12 @@ int match_keyword(const char* buf) {
     return T_IDENTIFIER;
 }
 
-typedef enum {
-    S_INITIAL,
-    S_STRING,
-    S_COMMENT,
-    S_NE_BEGIN,
-    S_EQ_BEGIN,
-    S_ASSIGN_BEGIN,
-} State;
-
 extern FILE* source;
 char* lval;
+
 int __lex() {
     static size_t line = 1;
     static int ch;
-    static int state = S_INITIAL;
     static char buffer[256] = {0};
     static char* buf = buffer;
     while ((ch = fgetc(source)) != EOF) {
