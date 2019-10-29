@@ -1,8 +1,10 @@
-#include <stdlib.h>
+#include "token.h"
+
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include "token.h"
+
 extern char* lval;
 int lex();
 int token;
@@ -22,15 +24,13 @@ void BoolExpression();
 
 int ii = 0, itop = -1, istack[100];
 
-#define _BEG_IF     {istack[++itop] = ++ii;}
-#define _END_IF     {itop--;}
-#define _i          (istack[itop])
+#define _BEG_IF \
+    { istack[++itop] = ++ii; }
+#define _END_IF \
+    { itop--; }
+#define _i (istack[itop])
 
-
-int accept(int expected) {
-    return token == expected;
-}
-
+int accept(int expected) { return token == expected; }
 
 void parse_error(int n, ...) {
     fprintf(stderr, "Line %d, Char %d: Expected ", line, token_start);
@@ -38,7 +38,7 @@ void parse_error(int n, ...) {
     va_start(expected, n);
     for (size_t i = 0; i < n; ++i) {
         if (i) {
-           fprintf(stderr, ", ");
+            fprintf(stderr, ", ");
         }
         fprintf(stderr, "%s", print_token(va_arg(expected, int)));
     }
@@ -47,30 +47,26 @@ void parse_error(int n, ...) {
     exit(1);
 }
 
-#define terminal(expected, action) do {\
-    if (accept(expected)) {\
-        action\
-        token = lex();\
-    } else {\
-        parse_error(1, expected);\
-    }\
-    \
-} while (0)
+#define terminal(expected, action)    \
+    do {                              \
+        if (accept(expected)) {       \
+            action token = lex();     \
+        } else {                      \
+            parse_error(1, expected); \
+        }                             \
+                                      \
+    } while (0)
 
-void Match(int expected) {
-    terminal(expected, {});
-}
+void Match(int expected) { terminal(expected, {}); }
 
 void Type() {
     if (accept(T_INT)) {
-        terminal(T_INT, 
-            printf("INT ");
-        );
+        terminal(T_INT, printf("INT "););
     } else if (accept(T_REAL)) {
-        terminal(T_REAL, 
-            printf("REAL ");
-        );
-    } else parse_error(2, T_INT, T_REAL);
+        terminal(T_REAL, printf("REAL "););
+    } else {
+        parse_error(2, T_INT, T_REAL);
+    }
 }
 
 void Id() { terminal(T_IDENTIFIER, {}); }
@@ -78,25 +74,19 @@ void Id() { terminal(T_IDENTIFIER, {}); }
 void FormalParam() {
     Type();
     printf("PARAM ");
-    terminal(T_IDENTIFIER,
-        puts(lval);
-    );
+    terminal(T_IDENTIFIER, puts(lval););
 }
 
 void LocalVarDecl() {
     Type();
     printf("VAR ");
-    terminal(T_IDENTIFIER,
-        puts(lval);
-    );
+    terminal(T_IDENTIFIER, puts(lval););
     terminal(';', {});
 }
 
 void AssignStmt() {
-    char * id;
-    terminal(T_IDENTIFIER, 
-        id = strdup(lval);
-    );
+    char* id;
+    terminal(T_IDENTIFIER, id = strdup(lval););
     terminal(T_ASSIGN, {});
     Expression();
     terminal(';', {});
@@ -112,19 +102,21 @@ void ReturnStmt() {
 
 void IfStmt() {
     terminal(T_IF, {
-        _BEG_IF; printf("_begIf_%d:\n", _i); 
+        _BEG_IF;
+        printf("_begIf_%d:\n", _i);
     });
     Match('(');
     BoolExpression();
     Match(')');
     printf("JZ _elIf_%d\n", _i);
     Statement();
-    printf("JMP _endIf_%d\n_elIf_%d:\n", _i, _i); 
+    printf("JMP _endIf_%d\n_elIf_%d:\n", _i, _i);
     if (token == T_ELSE) {
         token = lex();
         Statement();
     }
-    printf("_endIf_%d:\n", _i); _END_IF;
+    printf("_endIf_%d:\n", _i);
+    _END_IF;
 }
 
 void String() {
@@ -136,30 +128,24 @@ void String() {
 }
 
 void WriteStmt() {
-    char * filename;
+    char* filename;
     Match(T_WRITE);
     Match('(');
     Expression();
     Match(',');
-    terminal(T_STRING_LITERAL, 
-        filename = strdup(lval);
-    );
+    terminal(T_STRING_LITERAL, filename = strdup(lval););
     Match(')');
     Match(';');
     printf("WRITE %s\n", filename);
 }
 
 void ReadStmt() {
-    char * filename, * id;
+    char *filename, *id;
     Match(T_READ);
     Match('(');
-    terminal(T_IDENTIFIER, 
-        id = strdup(lval);
-    );
+    terminal(T_IDENTIFIER, id = strdup(lval););
     Match(',');
-    terminal(T_STRING_LITERAL, 
-        filename = strdup(lval);
-    );
+    terminal(T_STRING_LITERAL, filename = strdup(lval););
     Match(')');
     Match(';');
     printf("READ %s\n", filename);
@@ -175,35 +161,30 @@ void Num() {
 }
 
 void ActualParams() {
-    switch (token)
-    {
-    case T_INT_LITERAL:
-    case T_REAL_LITERAL:
-    case '(':
-    case T_IDENTIFIER:
-        Expression();
-        while (accept(',')) {
-            token = lex();
+    switch (token) {
+        case T_INT_LITERAL:
+        case T_REAL_LITERAL:
+        case '(':
+        case T_IDENTIFIER:
             Expression();
-        }
-        break;
-    
-    default:
-        break;
+            while (accept(',')) {
+                token = lex();
+                Expression();
+            }
+            break;
+
+        default:
+            break;
     }
 }
 
 void BoolExpression() {
-    char * action;
+    char* action;
     Expression();
     if (accept(T_EQ)) {
-        terminal(T_EQ, 
-            action = "CMPEQ";
-        );
+        terminal(T_EQ, action = "CMPEQ";);
     } else if (accept(T_NE)) {
-        terminal(T_NE, 
-            action = "CMPNE";
-        );
+        terminal(T_NE, action = "CMPNE";);
     } else {
         parse_error(2, T_EQ, T_NE);
     }
@@ -212,20 +193,18 @@ void BoolExpression() {
 }
 
 void PrimaryExpr() {
-    switch (token)
-    {
-    case T_REAL_LITERAL:
-    case T_INT_LITERAL:
-        printf("PUSH %s\n", lval);
-        token = lex();
-        break;
-    case '(':
-        Match('(');
-        Expression();
-        Match(')');
-    case T_IDENTIFIER:
-        {
-            char * str = strdup(lval);
+    switch (token) {
+        case T_REAL_LITERAL:
+        case T_INT_LITERAL:
+            printf("PUSH %s\n", lval);
+            token = lex();
+            break;
+        case '(':
+            Match('(');
+            Expression();
+            Match(')');
+        case T_IDENTIFIER: {
+            char* str = strdup(lval);
             token = lex();
             if (accept('(')) {
                 Match('(');
@@ -236,25 +215,21 @@ void PrimaryExpr() {
                 printf("PUSH %s\n", str);
             }
         }
-    default:
-        break;
+        default:
+            break;
     }
 }
 
 void MultiplicativeExpr() {
     PrimaryExpr();
-    char * action;
+    char* action;
     while (1) {
         if (accept('*')) {
-            terminal('*', 
-                action = "MUL";
-            );
+            terminal('*', action = "MUL";);
             PrimaryExpr();
             puts(action);
         } else if (accept('/')) {
-            terminal('/', 
-                action = "DIV";
-            );
+            terminal('/', action = "DIV";);
             PrimaryExpr();
             puts(action);
         } else {
@@ -265,25 +240,20 @@ void MultiplicativeExpr() {
 
 void Expression() {
     MultiplicativeExpr();
-    char * action;
+    char* action;
     while (1) {
         if (accept('+')) {
-            terminal('+', 
-                action = "ADD";
-            );
+            terminal('+', action = "ADD";);
             MultiplicativeExpr();
             puts(action);
         } else if (accept('-')) {
-            terminal('-', 
-                action = "SUB";
-            );
+            terminal('-', action = "SUB";);
             MultiplicativeExpr();
             puts(action);
         } else {
             break;
         }
     }
-    
 }
 
 void Statement() {
@@ -311,7 +281,8 @@ void Statement() {
             ReadStmt();
             break;
         default:
-            parse_error(8, T_BEGIN, T_INT, T_REAL, T_IDENTIFIER, T_RETURN, T_IF, T_WRITE, T_READ);
+            parse_error(8, T_BEGIN, T_INT, T_REAL, T_IDENTIFIER, T_RETURN, T_IF,
+                        T_WRITE, T_READ);
             break;
     }
 }
@@ -338,7 +309,6 @@ void FormalParams() {
             parse_error(3, T_INT, T_REAL, ')');
             break;
     }
-
 }
 
 void Main() {
@@ -349,13 +319,11 @@ void Main() {
 }
 
 void MethodDecl() {
-    char * funcname;
+    char* funcname;
     Type();
     Main();
     printf("FUNC ");
-    terminal(T_IDENTIFIER, 
-        puts(funcname = strdup(lval));
-    );
+    terminal(T_IDENTIFIER, puts(funcname = strdup(lval)););
     Match('(');
     FormalParams();
     Match(')');

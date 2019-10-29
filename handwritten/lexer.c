@@ -1,7 +1,8 @@
 #include "token.h"
 
-#include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 int match_keyword(const char* buf) {
     for (int i = 0; i < kw_size; ++i) {
@@ -19,14 +20,23 @@ int pos = 0;
 int token_start = 1;
 char* lval;
 
+void lex_error(char* msg) {
+    fprintf(stderr, "Line %d, Char %d: %s\n", line, pos, msg);
+    exit(1);
+}
+
+void unrecognized_char(char c) {
+    char buf[32] = "Unrecognized character: ?";
+    buf[24] = c;
+    lex_error(buf);
+}
+
 void next_line() { ++line, pos = 0; }
 int next_char() {
     ++pos;
     int ch = fgetc(source);
     return ch;
 }
-
-void lex_error() {}
 
 int lex() {
     static size_t line = 1;
@@ -66,6 +76,8 @@ int lex() {
                             ch = next_char();
                             if (ch == '/') break;
                             goto comment;
+                        } else if (ch == EOF) {
+                            lex_error("Unterminated comment");
                         }
                     }
                 } else {
@@ -83,6 +95,8 @@ int lex() {
                         *buf = '\0';
                         lval = strdup(buf = buffer);
                         break;
+                    } else if (ch == EOF || ch == '\n') {
+                        lex_error("Unterminated string");
                     }
                 }
                 return T_STRING_LITERAL;
@@ -140,18 +154,21 @@ int lex() {
 
             case '!':
                 ch = next_char();
-
                 if (ch == '=') return T_NE;
+                unrecognized_char(ch);
                 break;
             case '=':
                 ch = next_char();
-
                 if (ch == '=') return T_EQ;
+                unrecognized_char(ch);
                 break;
             case ':':
                 ch = next_char();
-
                 if (ch == '=') return T_ASSIGN;
+                unrecognized_char(ch);
+                break;
+            default:
+                unrecognized_char(ch);
                 break;
         }
     }

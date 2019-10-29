@@ -26,6 +26,6 @@ typedef enum {
     T_REAL,
 } TokenType;
 
-char * print_token(int token);
+char* print_token(int token);
 
 #endif  // _TOKEN_H_
