@@ -1,0 +1,44 @@
+/** this is multi comment line
+ in the sample 
+ program **/
+ INT f2(INT x, INT y ) 
+ BEGIN 
+    INT z;
+    z := x * x - y * y;
+    RETURN z; 
+ END 
+ 
+ INT FACTORIAL(INT x)
+ BEGIN
+    IF (x == 1) 
+        RETURN 1;
+    ELSE 
+        RETURN x * FACTORIAL(x - 1);
+ END
+
+ INT FIBONACCI(INT x)
+ BEGIN
+    IF (x == 1) 
+        RETURN 1;
+    ELSE IF (x == 2)
+        RETURN 1;
+    ELSE
+        RETURN FIBONACCI(x - 1) + FIBONACCI(x - 2);
+ END
+
+ INT MAIN f1() 
+ BEGIN
+    INT x;
+    READ(x, "A41.input");
+    INT y;
+    READ(y, "A42.input");
+    INT z;
+    z := f2(x, y) + f2(y, x);
+    WRITE (z, "A4.output");
+    INT fac;
+    fac := FACTORIAL(x);
+    WRITE (fac, "fac.output");
+    INT fib;
+    fib := FIBONACCI(y);
+    WRITE (fib, "fib.output");
+ END
