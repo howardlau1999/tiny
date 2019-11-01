@@ -15,7 +15,7 @@ extern int token_start;
 int ident = -2;
 const int step = 2;
 
-FILE* source, *tree;
+FILE *source, *tree;
 
 void Type();
 void Id();
@@ -52,26 +52,26 @@ void parse_error(int n, ...) {
     exit(1);
 }
 
-#define call(func)\
-    do {\
-        ident += step;\
-        fprintf(tree, "%*s%s\n", ident, "", #func);\
-        func();\
-        ident -= step;\
-    } while(0)
+#define call(func)                                  \
+    do {                                            \
+        ident += step;                              \
+        fprintf(tree, "%*s%s\n", ident, "", #func); \
+        func();                                     \
+        ident -= step;                              \
+    } while (0)
 
-#define terminal(expected, action)    \
-    do {                              \
-        if (accept(expected)) {       \
-            ident += step;              \
-            fprintf(tree, "%*s%s\n", ident, "", print_token(token));\
-            action;             \
-            token = lex();     \
-            ident -= step;              \
-        } else {                      \
-            parse_error(1, expected); \
-        }                             \
-                                      \
+#define terminal(expected, action)                                   \
+    do {                                                             \
+        if (accept(expected)) {                                      \
+            ident += step;                                           \
+            fprintf(tree, "%*s%s\n", ident, "", print_token(token)); \
+            action;                                                  \
+            token = lex();                                           \
+            ident -= step;                                           \
+        } else {                                                     \
+            parse_error(1, expected);                                \
+        }                                                            \
+                                                                     \
     } while (0)
 
 void Match(int expected) { terminal(expected, {}); }
@@ -365,7 +365,6 @@ int parse() {
     token = lex();
     call(Program);
 }
-
 
 int main(int argc, char* argv[]) {
     source = stdin;
