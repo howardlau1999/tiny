@@ -12,6 +12,11 @@ int token;
 extern int line;
 extern int token_start;
 
+int ident = -2;
+const int step = 2;
+
+FILE* source, *tree;
+
 void Type();
 void Id();
 void FormalParam();
@@ -47,10 +52,22 @@ void parse_error(int n, ...) {
     exit(1);
 }
 
+#define call(func)\
+    do {\
+        ident += step;\
+        fprintf(tree, "%*s%s\n", ident, "", #func);\
+        func();\
+        ident -= step;\
+    } while(0)
+
 #define terminal(expected, action)    \
     do {                              \
         if (accept(expected)) {       \
-            action token = lex();     \
+            ident += step;              \
+            fprintf(tree, "%*s%s\n", ident, "", print_token(token));\
+            action;             \
+            token = lex();     \
+            ident -= step;              \
         } else {                      \
             parse_error(1, expected); \
         }                             \
@@ -61,9 +78,9 @@ void Match(int expected) { terminal(expected, {}); }
 
 void Type() {
     if (accept(T_INT)) {
-        terminal(T_INT, printf("INT "););
+        terminal(T_INT, printf("INT "));
     } else if (accept(T_REAL)) {
-        terminal(T_REAL, printf("REAL "););
+        terminal(T_REAL, printf("REAL "));
     } else {
         parse_error(2, T_INT, T_REAL);
     }
@@ -72,30 +89,30 @@ void Type() {
 void Id() { terminal(T_IDENTIFIER, {}); }
 
 void FormalParam() {
-    Type();
+    call(Type);
     printf("PARAM ");
-    terminal(T_IDENTIFIER, puts(lval););
+    terminal(T_IDENTIFIER, puts(lval));
 }
 
 void LocalVarDecl() {
-    Type();
+    call(Type);
     printf("VAR ");
-    terminal(T_IDENTIFIER, puts(lval););
+    terminal(T_IDENTIFIER, puts(lval));
     terminal(';', {});
 }
 
 void AssignStmt() {
     char* id;
-    terminal(T_IDENTIFIER, id = strdup(lval););
+    terminal(T_IDENTIFIER, id = strdup(lval));
     terminal(T_ASSIGN, {});
-    Expression();
+    call(Expression);
     terminal(';', {});
     printf("POP %s\n", id);
 }
 
 void ReturnStmt() {
     terminal(T_RETURN, {});
-    Expression();
+    call(Expression);
     terminal(';', {});
     puts("RET");
 }
@@ -106,32 +123,24 @@ void IfStmt() {
         printf("_begIf_%d:\n", _i);
     });
     Match('(');
-    BoolExpression();
+    call(BoolExpression);
     Match(')');
     printf("JZ _elIf_%d\n", _i);
-    Statement();
+    call(Statement);
     printf("JMP _endIf_%d\n_elIf_%d:\n", _i, _i);
     if (token == T_ELSE) {
-        token = lex();
-        Statement();
+        Match(T_ELSE);
+        call(Statement);
     }
     printf("_endIf_%d:\n", _i);
     _END_IF;
-}
-
-void String() {
-    if (accept(T_STRING_LITERAL)) {
-        token = lex();
-    } else {
-        parse_error(1, T_STRING_LITERAL);
-    }
 }
 
 void WriteStmt() {
     char* filename;
     Match(T_WRITE);
     Match('(');
-    Expression();
+    call(Expression);
     Match(',');
     terminal(T_STRING_LITERAL, filename = strdup(lval););
     Match(')');
@@ -153,8 +162,10 @@ void ReadStmt() {
 }
 
 void Num() {
-    if (accept(T_REAL_LITERAL) || accept(T_INT_LITERAL)) {
-        token = lex();
+    if (accept(T_REAL_LITERAL)) {
+        Match(T_REAL_LITERAL);
+    } else if (accept(T_INT_LITERAL)) {
+        Match(T_INT_LITERAL);
     } else {
         parse_error(2, T_REAL_LITERAL, T_INT_LITERAL);
     }
@@ -163,13 +174,21 @@ void Num() {
 void ActualParams() {
     switch (token) {
         case T_INT_LITERAL:
+            Match(T_INT_LITERAL);
+            goto next;
         case T_REAL_LITERAL:
+            Match(T_REAL_LITERAL);
+            goto next;
         case '(':
+            Match('(');
+            goto next;
         case T_IDENTIFIER:
-            Expression();
+            Match(T_IDENTIFIER);
+        next:
+            call(Expression);
             while (accept(',')) {
-                token = lex();
-                Expression();
+                Match(',');
+                call(Expression);
             }
             break;
 
@@ -180,7 +199,7 @@ void ActualParams() {
 
 void BoolExpression() {
     char* action;
-    Expression();
+    call(Expression);
     if (accept(T_EQ)) {
         terminal(T_EQ, action = "CMPEQ";);
     } else if (accept(T_NE)) {
@@ -188,27 +207,29 @@ void BoolExpression() {
     } else {
         parse_error(2, T_EQ, T_NE);
     }
-    Expression();
+    call(Expression);
     puts(action);
 }
 
 void PrimaryExpr() {
     switch (token) {
         case T_REAL_LITERAL:
-        case T_INT_LITERAL:
+            Match(T_REAL_LITERAL);
             printf("PUSH %s\n", lval);
-            token = lex();
+        case T_INT_LITERAL:
+            Match(T_INT_LITERAL);
+            printf("PUSH %s\n", lval);
             break;
         case '(':
             Match('(');
-            Expression();
+            call(Expression);
             Match(')');
         case T_IDENTIFIER: {
             char* str = strdup(lval);
-            token = lex();
+            Match(T_IDENTIFIER);
             if (accept('(')) {
                 Match('(');
-                ActualParams();
+                call(ActualParams);
                 Match(')');
                 printf("CALL %s\n", str);
             } else {
@@ -221,16 +242,16 @@ void PrimaryExpr() {
 }
 
 void MultiplicativeExpr() {
-    PrimaryExpr();
+    call(PrimaryExpr);
     char* action;
     while (1) {
         if (accept('*')) {
-            terminal('*', action = "MUL";);
-            PrimaryExpr();
+            terminal('*', action = "MUL");
+            call(PrimaryExpr);
             puts(action);
         } else if (accept('/')) {
-            terminal('/', action = "DIV";);
-            PrimaryExpr();
+            terminal('/', action = "DIV");
+            call(PrimaryExpr);
             puts(action);
         } else {
             break;
@@ -239,16 +260,16 @@ void MultiplicativeExpr() {
 }
 
 void Expression() {
-    MultiplicativeExpr();
+    call(MultiplicativeExpr);
     char* action;
     while (1) {
         if (accept('+')) {
-            terminal('+', action = "ADD";);
-            MultiplicativeExpr();
+            terminal('+', action = "ADD");
+            call(MultiplicativeExpr);
             puts(action);
         } else if (accept('-')) {
-            terminal('-', action = "SUB";);
-            MultiplicativeExpr();
+            terminal('-', action = "SUB");
+            call(MultiplicativeExpr);
             puts(action);
         } else {
             break;
@@ -259,26 +280,26 @@ void Expression() {
 void Statement() {
     switch (token) {
         case T_BEGIN:
-            Block();
+            call(Block);
             break;
         case T_INT:
         case T_REAL:
-            LocalVarDecl();
+            call(LocalVarDecl);
             break;
         case T_IDENTIFIER:
-            AssignStmt();
+            call(AssignStmt);
             break;
         case T_RETURN:
-            ReturnStmt();
+            call(ReturnStmt);
             break;
         case T_IF:
-            IfStmt();
+            call(IfStmt);
             break;
         case T_WRITE:
-            WriteStmt();
+            call(WriteStmt);
             break;
         case T_READ:
-            ReadStmt();
+            call(ReadStmt);
             break;
         default:
             parse_error(8, T_BEGIN, T_INT, T_REAL, T_IDENTIFIER, T_RETURN, T_IF,
@@ -289,7 +310,7 @@ void Statement() {
 
 void Block() {
     Match(T_BEGIN);
-    while (!accept(T_END)) Statement();
+    while (!accept(T_END)) call(Statement);
     Match(T_END);
 }
 
@@ -297,10 +318,10 @@ void FormalParams() {
     switch (token) {
         case T_INT:
         case T_REAL:
-            FormalParam();
+            call(FormalParam);
             while (accept(',')) {
                 Match(',');
-                FormalParam();
+                call(FormalParam);
             }
             break;
         case ')':
@@ -311,31 +332,27 @@ void FormalParams() {
     }
 }
 
-void Main() {
-    if (accept(T_MAIN)) {
-        printf("ENTRY ");
-        token = lex();
-    }
-}
-
 void MethodDecl() {
     char* funcname;
-    Type();
-    Main();
+    call(Type);
+    if (accept(T_MAIN)) {
+        Match(T_MAIN);
+        printf("ENTRY ");
+    }
     printf("FUNC ");
     terminal(T_IDENTIFIER, puts(funcname = strdup(lval)););
     Match('(');
-    FormalParams();
+    call(FormalParams);
     Match(')');
-    Block();
+    call(Block);
     printf("END FUNC %s\n", funcname);
 }
 
 void Program() {
-    MethodDecl();
+    call(MethodDecl);
     while (1) {
         if (accept(T_INT) || accept(T_REAL)) {
-            MethodDecl();
+            call(MethodDecl);
         } else if (accept(-1)) {
             return;
         } else {
@@ -346,12 +363,13 @@ void Program() {
 
 int parse() {
     token = lex();
-    Program();
+    call(Program);
 }
 
-FILE* source;
 
 int main(int argc, char* argv[]) {
     source = stdin;
+    tree = fopen("tree.txt", "w");
     parse();
+    fclose(tree);
 }
