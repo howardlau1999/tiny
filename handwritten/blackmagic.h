@@ -29,16 +29,16 @@ int ident = 0;
                                                        \
     } while (0)
 
-#define optional(expected, action) \
-    do {                           \
-        if (accept(expected)) {    \
-            action;                \
-        }                          \
+#define optional(expected, action)                     \
+    do {                                               \
+        if (accept(expected)) {                        \
+            action;                                    \
+        }                                              \
     } while (0)
 
-#define match_case(expected, action)      \
-    case expected: {\
-        terminal(expected, action);\
-    } break\
+#define match_case(expected, action)                   \
+    case expected: {                                   \
+        terminal(expected, action);                    \
+    } break                                            \
 
 #endif

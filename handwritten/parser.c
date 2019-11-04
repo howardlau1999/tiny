@@ -1,5 +1,5 @@
-#include "token.h"
 #include "blackmagic.h"
+#include "token.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -131,10 +131,12 @@ void IfStmt() {
     printf("JZ _elIf_%d\n", _i);
     call(Statement);
     printf("JMP _endIf_%d\n_elIf_%d:\n", _i, _i);
-    if (accept(T_ELSE)) {
+
+    optional(T_ELSE, {
         match(T_ELSE);
         call(Statement);
-    }
+    });
+
     printf("_endIf_%d:\n", _i);
     _END_IF;
 }
@@ -168,12 +170,12 @@ void ReadStmt() {
 }
 
 void Num() {
-    switch(token) {
+    switch (token) {
         match_case(T_REAL_LITERAL, {});
         match_case(T_INT_LITERAL, {});
         default:
-        parse_error(2, T_REAL_LITERAL, T_INT_LITERAL);
-        break;
+            parse_error(2, T_REAL_LITERAL, T_INT_LITERAL);
+            break;
     }
 }
 
@@ -207,7 +209,7 @@ void BoolExpression() {
         match_case('>', action = "CMPGT");
         default:
             parse_error(6, T_EQ, T_NE, T_LE, T_GE, '<', '>');
-        break;
+            break;
     }
     call(Expression);
     puts(action);
