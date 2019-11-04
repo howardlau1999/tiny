@@ -170,6 +170,16 @@ int lex() {
                 if (ch == '=') return T_ASSIGN;
                 unrecognized_char(ch);
                 break;
+            case '<':
+                ch = next_char();
+                if (ch == '=') return T_LE;
+                ungetc(ch, source);
+                return '<';
+            case '>':
+                ch = next_char();
+                if (ch == '=') return T_GE;
+                ungetc(ch, source);
+                return '>';
             default:
                 unrecognized_char(ch);
                 break;

@@ -49,6 +49,10 @@ def do_cmpeq():
     stack[-2] = int(stack[-2] == stack[-1])
     stack.pop()
 
+def do_cmpne():
+    stack[-2] = int(stack[-2] != stack[-1])
+    stack.pop()
+
 def do_jz(label):
     global eip
     if stack.pop() == 0:
@@ -59,7 +63,7 @@ def do_jmp(label):
     eip = labels[label]
 
 no_arg_table = {
-    "ADD": do_add, "SUB": do_sub, "MUL": do_mul, "DIV": do_div, "RET": do_ret, "CMPEQ": do_cmpeq
+    "ADD": do_add, "SUB": do_sub, "MUL": do_mul, "DIV": do_div, "RET": do_ret, "CMPEQ": do_cmpeq, "CMPNE": do_cmpne
 }
 
 one_arg_table = {

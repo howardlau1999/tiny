@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 
-const int kw_offset = 6;
 const char * keywords[] = {
     "INT",   "WHILE", "IF",  "ELSE", "RETURN", "READ",
     "WRITE", "BEGIN", "END", "MAIN", "REAL",
@@ -13,6 +12,8 @@ char * print_token(int token) {
         "==",
         "!=",
         ":=",
+        "<=",
+        ">=",
         "T_INT_LITERAL",
         "T_STRING_LITERAL",
         "T_REAL_LITERAL",

@@ -26,6 +26,18 @@
         RETURN FIBONACCI(x - 1) + FIBONACCI(x - 2);
  END
 
+ INT SUM(INT a, INT b)
+ BEGIN
+    INT result;
+    result := 0;
+    WHILE (a != b)
+    BEGIN
+      result := result + a;
+      a := a + 1;
+    END
+    RETURN result + b;
+ END
+
  INT MAIN f1() 
  BEGIN
     INT x;
@@ -41,4 +53,5 @@
     INT fib;
     fib := FIBONACCI(y);
     WRITE (fib, "fib.output");
+    WRITE (SUM(1, 100), "sum.output");
  END

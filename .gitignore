@@ -3,3 +3,5 @@ tiny
 y.*
 lex.yy.c
 *.asm
+*.txt
+*.output

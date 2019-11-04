@@ -2,13 +2,14 @@
 #define _TOKEN_H_
 
 extern char* keywords[];
-extern int kw_offset;
 extern int kw_size;
 
 typedef enum {
     T_EQ = 256,
     T_NE,
     T_ASSIGN,
+    T_LE,
+    T_GE,
     T_INT_LITERAL,
     T_STRING_LITERAL,
     T_REAL_LITERAL,
