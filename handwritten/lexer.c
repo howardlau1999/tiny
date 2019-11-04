@@ -42,6 +42,11 @@ int lex() {
     static int ch;
     static char buffer[256] = {0};
     static char* buf = buffer;
+    
+    if (lval) {
+        free(lval);
+        lval = NULL;
+    }
     while ((ch = next_char()) != EOF) {
         token_start = pos;
         switch (ch) {
