@@ -47,9 +47,7 @@ void parse_error(int n, ...) {
     va_list expected;
     va_start(expected, n);
     for (size_t i = 0; i < n; ++i) {
-        if (i) {
-            fprintf(stderr, ", ");
-        }
+        i && fprintf(stderr, ", ");
         char* repr = print_token(va_arg(expected, int));
         fprintf(stderr, "%s", repr);
         free(repr);
