@@ -18,7 +18,6 @@ const int step = 2;
 FILE *source, *tree;
 
 void Type();
-void Id();
 void FormalParam();
 void FormalParams();
 void Main();
@@ -91,8 +90,6 @@ void Type() {
         parse_error(2, T_INT, T_REAL);
     }
 }
-
-void Id() { terminal(T_IDENTIFIER, {}); }
 
 void FormalParam() {
     call(Type);
