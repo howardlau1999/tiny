@@ -133,7 +133,7 @@ void IfStmt() {
     printf("JZ _elIf_%d\n", _i);
     call(Statement);
     printf("JMP _endIf_%d\n_elIf_%d:\n", _i, _i);
-    if (token == T_ELSE) {
+    if (accept(T_ELSE)) {
         Match(T_ELSE);
         call(Statement);
     }
@@ -214,12 +214,10 @@ void BoolExpression() {
 void PrimaryExpr() {
     switch (token) {
         case T_REAL_LITERAL:
-            Match(T_REAL_LITERAL);
-            printf("PUSH %s\n", lval);
+            terminal(T_INT_LITERAL, printf("PUSH %s\n", lval));
             break;
         case T_INT_LITERAL:
-            Match(T_INT_LITERAL);
-            printf("PUSH %s\n", lval);
+            terminal(T_INT_LITERAL, printf("PUSH %s\n", lval));
             break;
         case '(':
             Match('(');
@@ -227,8 +225,8 @@ void PrimaryExpr() {
             Match(')');
             break;
         case T_IDENTIFIER: {
-            char* str = strdup(lval);
-            Match(T_IDENTIFIER);
+            char* str;
+            terminal(T_IDENTIFIER, str = strdup(lval));
             if (accept('(')) {
                 Match('(');
                 call(ActualParams);
