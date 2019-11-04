@@ -208,6 +208,7 @@ void PrimaryExpr() {
         case T_REAL_LITERAL:
             Match(T_REAL_LITERAL);
             printf("PUSH %s\n", lval);
+            break;
         case T_INT_LITERAL:
             Match(T_INT_LITERAL);
             printf("PUSH %s\n", lval);
@@ -216,6 +217,7 @@ void PrimaryExpr() {
             Match('(');
             call(Expression);
             Match(')');
+            break;
         case T_IDENTIFIER: {
             char* str = strdup(lval);
             Match(T_IDENTIFIER);
@@ -229,6 +231,7 @@ void PrimaryExpr() {
             }
         }
         default:
+            parse_error(4, T_REAL_LITERAL, T_REAL_LITERAL, '(', T_IDENTIFIER);
             break;
     }
 }
