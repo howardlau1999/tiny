@@ -68,7 +68,9 @@ void parse_error(int n, ...) {
     do {                                                             \
         if (accept(expected)) {                                      \
             ident += step;                                           \
-            fprintf(tree, "%*s%s\n", ident, "", print_token(token)); \
+            char *repr = print_token(token);                         \
+            fprintf(tree, "%*s%s\n", ident, "", repr);               \
+            free(repr);                                              \
             action;                                                  \
             token = lex();                                           \
             ident -= step;                                           \
