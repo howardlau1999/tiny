@@ -45,10 +45,14 @@ void parse_error(int n, ...) {
         if (i) {
             fprintf(stderr, ", ");
         }
-        fprintf(stderr, "%s", print_token(va_arg(expected, int)));
+        char* repr = print_token(va_arg(expected, int));
+        fprintf(stderr, "%s", repr);
+        free(repr);
     }
     va_end(expected);
-    fprintf(stderr, " Got %s\n", print_token(token));
+    char* repr = print_token(token);
+    fprintf(stderr, " Got %s\n", repr);
+    free(repr);
     exit(1);
 }
 
@@ -98,16 +102,17 @@ void LocalVarDecl() {
     call(Type);
     printf("VAR ");
     terminal(T_IDENTIFIER, puts(lval));
-    terminal(';', {});
+    Match(';');
 }
 
 void AssignStmt() {
     char* id;
     terminal(T_IDENTIFIER, id = strdup(lval));
-    terminal(T_ASSIGN, {});
+    Match(T_ASSIGN);
     call(Expression);
-    terminal(';', {});
+    Match(';');
     printf("POP %s\n", id);
+    free(id);
 }
 
 void ReturnStmt() {
@@ -146,6 +151,7 @@ void WriteStmt() {
     Match(')');
     Match(';');
     printf("WRITE %s\n", filename);
+    free(filename);
 }
 
 void ReadStmt() {
@@ -159,6 +165,8 @@ void ReadStmt() {
     Match(';');
     printf("READ %s\n", filename);
     printf("POP %s\n", id);
+    free(filename);
+    free(id);
 }
 
 void Num() {
@@ -229,6 +237,8 @@ void PrimaryExpr() {
             } else {
                 printf("PUSH %s\n", str);
             }
+            
+            free(str);
         }
         default:
             parse_error(4, T_REAL_LITERAL, T_INT_LITERAL, '(', T_IDENTIFIER);
@@ -341,6 +351,7 @@ void MethodDecl() {
     Match(')');
     call(Block);
     printf("END FUNC %s\n", funcname);
+    free(funcname);
 }
 
 void Program() {
