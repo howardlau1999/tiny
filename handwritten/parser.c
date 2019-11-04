@@ -240,7 +240,9 @@ void PrimaryExpr() {
             
             free(str);
         }
+            break;
         default:
+            parse_error(4, T_REAL_LITERAL, T_INT_LITERAL, '(', T_IDENTIFIER);
             break;
     }
 }
