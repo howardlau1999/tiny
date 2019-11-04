@@ -231,7 +231,7 @@ void PrimaryExpr() {
             }
         }
         default:
-            parse_error(4, T_REAL_LITERAL, T_REAL_LITERAL, '(', T_IDENTIFIER);
+            parse_error(4, T_REAL_LITERAL, T_INT_LITERAL, '(', T_IDENTIFIER);
             break;
     }
 }
