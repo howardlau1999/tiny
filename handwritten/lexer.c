@@ -43,10 +43,6 @@ int lex() {
     static char buffer[256] = {0};
     static char* buf = buffer;
     
-    if (lval) {
-        free(lval);
-        lval = NULL;
-    }
     while ((ch = next_char()) != EOF) {
         token_start = pos;
         switch (ch) {
@@ -97,6 +93,7 @@ int lex() {
                     *(buf++) = ch;
                     if (ch == '"') {
                         *buf = '\0';
+                        if (lval) free(lval);
                         lval = strdup(buf = buffer);
                         break;
                     } else if (ch == EOF || ch == '\n') {
@@ -119,6 +116,7 @@ int lex() {
 
                         default:
                             *buf = '\0';
+                            if (lval) free(lval);
                             lval = strdup(buf = buffer);
                             ungetc(ch, source);
                             --pos;
@@ -148,6 +146,7 @@ int lex() {
 
                         default:
                             *buf = '\0';
+                            if (lval) free(lval);
                             lval = strdup(buf = buffer);
                             ungetc(ch, source);
                             --pos;
