@@ -30,12 +30,12 @@
  BEGIN
     INT result;
     result := 0;
-    WHILE (a != b)
+    WHILE (a <= b)
     BEGIN
       result := result + a;
       a := a + 1;
     END
-    RETURN result + b;
+    RETURN result;
  END
 
  INT MAIN f1() 

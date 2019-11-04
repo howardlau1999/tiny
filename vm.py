@@ -53,6 +53,23 @@ def do_cmpne():
     stack[-2] = int(stack[-2] != stack[-1])
     stack.pop()
 
+def do_cmple():
+    stack[-2] = int(stack[-2] <= stack[-1])
+    stack.pop()
+
+def do_cmpge():
+    stack[-2] = int(stack[-2] >= stack[-1])
+    stack.pop()
+
+def do_cmplt():
+    stack[-2] = int(stack[-2] < stack[-1])
+    stack.pop()
+
+def do_cmpgt():
+    stack[-2] = int(stack[-2] > stack[-1])
+    stack.pop()
+
+
 def do_jz(label):
     global eip
     if stack.pop() == 0:
@@ -63,7 +80,7 @@ def do_jmp(label):
     eip = labels[label]
 
 no_arg_table = {
-    "ADD": do_add, "SUB": do_sub, "MUL": do_mul, "DIV": do_div, "RET": do_ret, "CMPEQ": do_cmpeq, "CMPNE": do_cmpne
+    "ADD": do_add, "SUB": do_sub, "MUL": do_mul, "DIV": do_div, "RET": do_ret, "CMPEQ": do_cmpeq, "CMPNE": do_cmpne, "CMPGE": do_cmpge, "CMPLE": do_cmple, "CMPLT": do_cmplt, "CMPGT": do_cmpgt,
 }
 
 one_arg_table = {
