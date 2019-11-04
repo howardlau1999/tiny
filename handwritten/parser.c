@@ -174,17 +174,9 @@ void Num() {
 void ActualParams() {
     switch (token) {
         case T_INT_LITERAL:
-            Match(T_INT_LITERAL);
-            goto next;
         case T_REAL_LITERAL:
-            Match(T_REAL_LITERAL);
-            goto next;
         case '(':
-            Match('(');
-            goto next;
         case T_IDENTIFIER:
-            Match(T_IDENTIFIER);
-        next:
             call(Expression);
             while (accept(',')) {
                 Match(',');
